@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "Gh7f+yLqOPj2k4xTmVdpDI7Nw/B+ch2adB0bD+C2uYlu2Nu/TxquB0LcEtcv6nnesI5uDwi/kO0CMfCaHNK3Zg==",
+  "success": true,
+  "projectFilePath": "/home/eirik/code/Adressebok/Adressebok.csproj",
+  "expectedPackageFiles": [
+    "/home/eirik/.nuget/packages/microsoft.data.sqlite/8.0.10/microsoft.data.sqlite.8.0.10.nupkg.sha512",
+    "/home/eirik/.nuget/packages/microsoft.data.sqlite.core/8.0.10/microsoft.data.sqlite.core.8.0.10.nupkg.sha512",
+    "/home/eirik/.nuget/packages/sqlitepclraw.bundle_e_sqlite3/2.1.6/sqlitepclraw.bundle_e_sqlite3.2.1.6.nupkg.sha512",
+    "/home/eirik/.nuget/packages/sqlitepclraw.core/2.1.6/sqlitepclraw.core.2.1.6.nupkg.sha512",
+    "/home/eirik/.nuget/packages/sqlitepclraw.lib.e_sqlite3/2.1.6/sqlitepclraw.lib.e_sqlite3.2.1.6.nupkg.sha512",
+    "/home/eirik/.nuget/packages/sqlitepclraw.provider.e_sqlite3/2.1.6/sqlitepclraw.provider.e_sqlite3.2.1.6.nupkg.sha512",
+    "/home/eirik/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512"
+  ],
+  "logs": []
+}
