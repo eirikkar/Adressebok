@@ -38,3 +38,4 @@
 /home/eirik/code/Adressebok/obj/Debug/net8.0/Adressebok.pdb
 /home/eirik/code/Adressebok/obj/Debug/net8.0/Adressebok.genruntimeconfig.cache
 /home/eirik/code/Adressebok/obj/Debug/net8.0/ref/Adressebok.dll
+/home/eirik/code/Adressebok/obj/Debug/net8.0/Adressebok.sourcelink.json

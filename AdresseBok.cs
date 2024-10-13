@@ -137,7 +137,7 @@ namespace AdresseBok
             Console.WriteLine("Edit Contact");
             ShowContacts();
             Console.Write("Enter contact number to edit: ");
-            int index = ParseNumber();
+            int index = ParseNumber() + 1;
             string name = WriteName() ?? throw new ArgumentNullException(nameof(name));
             int phoneNumber = WriteNumber();
             string? email = WriteEmail() ?? throw new ArgumentNullException(nameof(email));
@@ -170,40 +170,15 @@ namespace AdresseBok
         {
             Console.Clear();
             Console.WriteLine("Delete Contact");
-            if (contacts.Count == 0)
-            {
-                Console.WriteLine("No contacts found.");
-                Console.WriteLine();
-                Console.WriteLine("Press any key to continue...");
-                Console.ReadKey();
-                return;
-            }
-            else
-            {
-                ShowContacts();
-                Console.Write("Enter contact number to delete: ");
+            ShowContacts();
+            Console.Write("Enter contact number to delete: ");
 
-                while (true)
-                {
-                    int index = ParseNumber();
-                    if (index >= contacts.Count)
-                    {
-                        Console.WriteLine("Contact not found.");
-                        Console.WriteLine();
-                        Console.Write("Please enter a valid number: ");
-                    }
-                    else
-                    {
-                        contacts.RemoveAt(index);
-                        Console.WriteLine();
-                        Console.WriteLine("Contact deleted successfully!");
-                        Console.WriteLine();
-                        Console.WriteLine("Press any key to continue...");
-                        Console.ReadKey();
-                        break;
-                    }
-                }
-            }
+            int index = ParseNumber() + 1;
+            int id = Contacts.DeleteContact(Contacts.InitDatabase(), index);
+            Console.WriteLine($"Contact with ID: {id} deleted successfully!");
+            Console.WriteLine();
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
         }
 
         private static void ShowContacts()
@@ -215,106 +190,6 @@ namespace AdresseBok
                     $"ID: {contacts.GetInt32(0)}, Name: {contacts.GetString(1)}, Phone Number: {contacts.GetInt32(2)}, Email: {contacts.GetString(3)}"
                 );
             }
-        }
-    }
-
-    public class Contacts
-    {
-        public int Id { get; set; }
-        public string? Name { get; set; }
-        public int PhoneNumber { get; set; }
-        public string? Email { get; set; }
-
-        public static SqliteConnection InitDatabase()
-        {
-            SqliteConnection sqliteCon;
-            sqliteCon = new SqliteConnection("Data Source=db.sqlite");
-            try
-            {
-                sqliteCon.Open();
-            }
-            catch (SqliteException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            return sqliteCon;
-        }
-
-        public static SqliteConnection CloseDatabase()
-        {
-            SqliteConnection sqliteCon;
-            sqliteCon = new SqliteConnection("Data Source=db.sqlite");
-            try
-            {
-                sqliteCon.Close();
-            }
-            catch (SqliteException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            return sqliteCon;
-        }
-
-        public static void CreateTable(SqliteConnection conn)
-        {
-            SqliteCommand sqliteCommand;
-            string createSQL =
-                "CREATE TABLE IF NOT EXISTS Contacts (Id INTEGER PRIMARY KEY, Name TEXT NOT NULL, PhoneNumber INTEGER NOT NULL, Email TEXT NOT NULL)";
-            sqliteCommand = conn.CreateCommand();
-            sqliteCommand.CommandText = createSQL;
-            sqliteCommand.ExecuteNonQuery();
-            conn.Close();
-        }
-
-        public static int AddContact(
-            SqliteConnection conn,
-            string name,
-            int phoneNumber,
-            string email
-        )
-        {
-            SqliteCommand sqliteCommand;
-            sqliteCommand = conn.CreateCommand();
-            sqliteCommand.CommandText =
-                "INSERT INTO Contacts (Name, PhoneNumber, Email) VALUES (@Name, @PhoneNumber, @Email)";
-            sqliteCommand.Parameters.AddWithValue("@Name", name);
-            sqliteCommand.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
-            sqliteCommand.Parameters.AddWithValue("@Email", email);
-            sqliteCommand.ExecuteNonQuery();
-
-            sqliteCommand.CommandText = "SELECT last_insert_rowid()";
-            int id = Convert.ToInt32(sqliteCommand.ExecuteScalar());
-            conn.Close();
-            return id;
-        }
-
-        public static SqliteDataReader ReadContact(SqliteConnection conn)
-        {
-            SqliteDataReader sqliteDataReader;
-            SqliteCommand sqliteCommand;
-            sqliteCommand = conn.CreateCommand();
-            sqliteCommand.CommandText = "SELECT * FROM Contacts";
-            sqliteDataReader = sqliteCommand.ExecuteReader();
-            return sqliteDataReader;
-        }
-
-        public static int EditContact(
-            SqliteConnection conn,
-            int id,
-            string name,
-            int phoneNumber,
-            string email
-        )
-        {
-            SqliteCommand sqliteCommand;
-            sqliteCommand = conn.CreateCommand();
-            sqliteCommand.CommandText =
-                "UPDATE Contacts FROM Id SET Name = @Name, PhoneNumber = @PhoneNumber, Email = @Email";
-            sqliteCommand.Parameters.AddWithValue("@Name", name);
-            sqliteCommand.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
-            sqliteCommand.Parameters.AddWithValue("@Email", email);
-            sqliteCommand.ExecuteNonQuery();
-            return id;
         }
     }
 }
