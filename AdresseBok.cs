@@ -1,15 +1,9 @@
-﻿using System.Net.Mail;
-using Microsoft.Data.Sqlite;
-
-namespace AdresseBok
+﻿namespace AdresseBok
 {
     class AdresseBok
     {
-        static List<Contacts> contacts = [];
-
         static void Main(string[] args)
         {
-            Contacts.CreateTable(Contacts.InitDatabase());
             bool exit = false;
             while (!exit)
             {
@@ -42,90 +36,31 @@ namespace AdresseBok
             }
         }
 
-        static void AddContact()
+        static void ViewContacts()
         {
             Console.Clear();
-            Console.WriteLine("Add Contact");
-            string name = WriteName() ?? throw new ArgumentNullException(nameof(name));
-            int phoneNumber = WriteNumber();
-            string? email = WriteEmail() ?? throw new ArgumentNullException(nameof(email));
-            int id = Contacts.AddContact(Contacts.InitDatabase(), name, phoneNumber, email);
-            Console.WriteLine($"Contact added with ID: {id}");
+            Console.WriteLine("Contacts:");
+            if (!Utility.ShowContacts())
+            {
+                Console.WriteLine();
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey();
+                return;
+            }
             Console.WriteLine();
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
 
-        private static string? WriteName()
-        {
-            while (true)
-            {
-                Console.Write("Enter name: ");
-                string? name = Console.ReadLine();
-                if (string.IsNullOrEmpty(name) || name.Length < 2 || !name.All(char.IsLetter))
-                {
-                    Console.WriteLine("Name is invalid. Please enter a valid name.");
-                }
-                else
-                {
-                    return name;
-                }
-            }
-        }
-
-        private static int WriteNumber()
-        {
-            while (true)
-            {
-                Console.Write("Enter phone number: ");
-                string? phoneNumberString = Console.ReadLine();
-                if (
-                    int.TryParse(phoneNumberString, out int phoneNumber)
-                    && phoneNumberString.Length == 8
-                    && phoneNumber > 0
-                )
-                {
-                    return phoneNumber;
-                }
-                else
-                {
-                    Console.WriteLine(
-                        "Phone number is invalid. Please enter a 8-digit phone number."
-                    );
-                }
-            }
-        }
-
-        private static string? WriteEmail()
-        {
-            while (true)
-            {
-                Console.Write("Enter email: ");
-                string? email = Console.ReadLine();
-                if (!string.IsNullOrEmpty(email))
-                {
-                    try
-                    {
-                        email = new MailAddress(email).Address;
-                        return email;
-                    }
-                    catch (FormatException)
-                    {
-                        Console.WriteLine("Email is invalid. Please enter a valid email.");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("You must enter something.");
-                }
-            }
-        }
-
-        static void ViewContacts()
+        static void AddContact()
         {
             Console.Clear();
-            Console.WriteLine("Contacts:");
-            ShowContacts();
+            Console.WriteLine("Add Contact");
+            string name = Utility.WriteName() ?? throw new ArgumentNullException(nameof(name));
+            int phoneNumber = Utility.WriteNumber();
+            string? email = Utility.WriteEmail() ?? throw new ArgumentNullException(nameof(email));
+            int id = Contacts.AddContact(name, phoneNumber, email);
+            Console.WriteLine($"Contact added with ID: {id}");
             Console.WriteLine();
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
@@ -135,33 +70,37 @@ namespace AdresseBok
         {
             Console.Clear();
             Console.WriteLine("Edit Contact");
-            ShowContacts();
+            if (!Utility.ShowContacts())
+            {
+                Console.WriteLine();
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey();
+                return;
+            }
             Console.Write("Enter contact number to edit: ");
-            int index = ParseNumber() + 1;
-            string name = WriteName() ?? throw new ArgumentNullException(nameof(name));
-            int phoneNumber = WriteNumber();
-            string? email = WriteEmail() ?? throw new ArgumentNullException(nameof(email));
-            int id = Contacts.EditContact(Contacts.InitDatabase(), index, name, phoneNumber, email);
-            Console.WriteLine($"Contact added with ID: {id}");
 
-            Console.WriteLine("Contact edited successfully!");
-            Console.WriteLine();
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
-        }
-
-        private static int ParseNumber()
-        {
             while (true)
             {
-                string? input = Console.ReadLine();
-                if (string.IsNullOrEmpty(input) || !int.TryParse(input, out int index) || index < 1)
+                int index = Utility.ParseNumber() + 1;
+                if (index > Contacts.GetCount() || index < 1)
                 {
                     Console.Write("Invalid input. Please enter a valid number: ");
                 }
                 else
                 {
-                    return index - 1;
+                    string name =
+                        Utility.WriteName() ?? throw new ArgumentNullException(nameof(name));
+                    int phoneNumber = Utility.WriteNumber();
+                    string? email =
+                        Utility.WriteEmail() ?? throw new ArgumentNullException(nameof(email));
+                    int id = Contacts.EditContact(index, name, phoneNumber, email);
+                    Console.WriteLine($"Contact added with ID: {id}");
+
+                    Console.WriteLine("Contact edited successfully!");
+                    Console.WriteLine();
+                    Console.WriteLine("Press any key to continue...");
+                    Console.ReadKey();
+                    break;
                 }
             }
         }
@@ -170,25 +109,31 @@ namespace AdresseBok
         {
             Console.Clear();
             Console.WriteLine("Delete Contact");
-            ShowContacts();
+            if (!Utility.ShowContacts())
+            {
+                Console.WriteLine();
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey();
+                return;
+            }
             Console.Write("Enter contact number to delete: ");
 
-            int index = ParseNumber() + 1;
-            int id = Contacts.DeleteContact(Contacts.InitDatabase(), index);
-            Console.WriteLine($"Contact with ID: {id} deleted successfully!");
-            Console.WriteLine();
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
-        }
-
-        private static void ShowContacts()
-        {
-            SqliteDataReader contacts = Contacts.ReadContact(Contacts.InitDatabase());
-            while (contacts.Read())
+            while (true)
             {
-                Console.WriteLine(
-                    $"ID: {contacts.GetInt32(0)}, Name: {contacts.GetString(1)}, Phone Number: {contacts.GetInt32(2)}, Email: {contacts.GetString(3)}"
-                );
+                int index = Utility.ParseNumber() + 1;
+                if (index > Contacts.GetCount() || index < 1)
+                {
+                    Console.Write("Invalid input. Please enter a valid number: ");
+                }
+                else
+                {
+                    int id = Contacts.DeleteContact(index);
+                    Console.WriteLine($"Contact with ID: {id} deleted successfully!");
+                    Console.WriteLine();
+                    Console.WriteLine("Press any key to continue...");
+                    Console.ReadKey();
+                    break;
+                }
             }
         }
     }

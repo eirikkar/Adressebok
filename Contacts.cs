@@ -9,17 +9,20 @@ public class Contacts
 
     public static SqliteConnection InitDatabase()
     {
-        SqliteConnection sqliteCon;
-        sqliteCon = new SqliteConnection("Data Source=db.sqlite");
-        try
+        var db = new SqliteConnection("Data Source=db.sqlite");
+        db.Open();
+        using (var cmd = db.CreateCommand())
         {
-            sqliteCon.Open();
+            cmd.CommandText =
+                @"CREATE TABLE IF NOT EXISTS Contacts (
+                                id INTEGER PRIMARY KEY,
+                                name TEXT NOT NULL,
+                                phoneNumber INTEGER NOT NULL,
+                                email TEXT NOT NULL
+                            );";
+            cmd.ExecuteNonQuery();
         }
-        catch (SqliteException e)
-        {
-            Console.WriteLine(e.Message);
-        }
-        return sqliteCon;
+        return db;
     }
 
     public static SqliteConnection CloseDatabase()
@@ -37,72 +40,87 @@ public class Contacts
         return sqliteCon;
     }
 
-    public static void CreateTable(SqliteConnection conn)
+    public static void CreateTable()
     {
-        SqliteCommand sqliteCommand;
-        string createSQL =
-            "CREATE TABLE IF NOT EXISTS Contacts (Id INTEGER PRIMARY KEY, Name TEXT NOT NULL, PhoneNumber INTEGER NOT NULL, Email TEXT NOT NULL)";
-        sqliteCommand = conn.CreateCommand();
-        sqliteCommand.CommandText = createSQL;
-        sqliteCommand.ExecuteNonQuery();
-        conn.Close();
+        using (SqliteConnection sqliteCon = InitDatabase())
+        {
+            sqliteCon.Open();
+            SqliteCommand sqliteCommand;
+            string createSQL =
+                "CREATE TABLE IF NOT EXISTS Contacts (Id INTEGER PRIMARY KEY, Name TEXT NOT NULL, PhoneNumber INTEGER NOT NULL, Email TEXT NOT NULL)";
+            sqliteCommand = sqliteCon.CreateCommand();
+            sqliteCommand.CommandText = createSQL;
+            sqliteCommand.ExecuteNonQuery();
+        }
     }
 
-    public static int AddContact(SqliteConnection conn, string name, int phoneNumber, string email)
+    public static int AddContact(string name, int phoneNumber, string email)
     {
-        SqliteCommand sqliteCommand;
-        sqliteCommand = conn.CreateCommand();
-        sqliteCommand.CommandText =
-            "INSERT INTO Contacts (Name, PhoneNumber, Email) VALUES (@Name, @PhoneNumber, @Email)";
-        sqliteCommand.Parameters.AddWithValue("@Name", name);
-        sqliteCommand.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
-        sqliteCommand.Parameters.AddWithValue("@Email", email);
-        sqliteCommand.ExecuteNonQuery();
+        using (SqliteConnection sqliteCon = InitDatabase())
+        {
+            sqliteCon.Open();
+            using (var sqliteCommand = sqliteCon.CreateCommand())
+            {
+                sqliteCommand.CommandText =
+                    "INSERT INTO Contacts (Name, PhoneNumber, Email) VALUES (@Name, @PhoneNumber, @Email)";
+                sqliteCommand.Parameters.AddWithValue("@Name", name);
+                sqliteCommand.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+                sqliteCommand.Parameters.AddWithValue("@Email", email);
+                sqliteCommand.ExecuteNonQuery();
 
-        sqliteCommand.CommandText = "SELECT last_insert_rowid()";
-        int id = Convert.ToInt32(sqliteCommand.ExecuteScalar());
-        conn.Close();
-        return id;
+                sqliteCommand.CommandText = "SELECT last_insert_rowid()";
+                int id = Convert.ToInt32(sqliteCommand.ExecuteScalar());
+                return id;
+            }
+        }
     }
 
-    public static SqliteDataReader ReadContact(SqliteConnection conn)
+    public static int EditContact(int id, string name, int phoneNumber, string email)
     {
-        SqliteDataReader sqliteDataReader;
-        SqliteCommand sqliteCommand;
-        sqliteCommand = conn.CreateCommand();
-        sqliteCommand.CommandText = "SELECT * FROM Contacts";
-        sqliteDataReader = sqliteCommand.ExecuteReader();
-        return sqliteDataReader;
+        using (SqliteConnection sqliteCon = InitDatabase())
+        {
+            sqliteCon.Open();
+            using (var sqliteCommand = sqliteCon.CreateCommand())
+            {
+                sqliteCommand.CommandText =
+                    "UPDATE Contacts SET Name = @Name, PhoneNumber = @PhoneNumber, Email = @Email WHERE Id = @Id";
+                sqliteCommand.Parameters.AddWithValue("@Id", id);
+                sqliteCommand.Parameters.AddWithValue("@Name", name);
+                sqliteCommand.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+                sqliteCommand.Parameters.AddWithValue("@Email", email);
+                sqliteCommand.ExecuteNonQuery();
+                return id;
+            }
+        }
     }
 
-    public static int EditContact(
-        SqliteConnection conn,
-        int id,
-        string name,
-        int phoneNumber,
-        string email
-    )
+    public static int DeleteContact(int id)
     {
-        SqliteCommand sqliteCommand;
-        sqliteCommand = conn.CreateCommand();
-        sqliteCommand.CommandText =
-            "UPDATE Contacts SET Name = @Name, PhoneNumber = @PhoneNumber, Email = @Email WHERE Id = @Id";
-        sqliteCommand.Parameters.AddWithValue("@Id", id);
-        sqliteCommand.Parameters.AddWithValue("@Name", name);
-        sqliteCommand.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
-        sqliteCommand.Parameters.AddWithValue("@Email", email);
-        sqliteCommand.ExecuteNonQuery();
-        return id;
+        using (SqliteConnection sqliteCon = InitDatabase())
+        {
+            sqliteCon.Open();
+
+            using (var sqliteCommand = sqliteCon.CreateCommand())
+            {
+                sqliteCommand.CommandText = "DELETE FROM Contacts WHERE Id = @Id";
+                sqliteCommand.Parameters.AddWithValue("@Id", id);
+                sqliteCommand.ExecuteNonQuery();
+                return id;
+            }
+        }
     }
 
-    public static int DeleteContact(SqliteConnection conn, int id)
+    public static int GetCount()
     {
-        SqliteCommand sqliteCommand;
-        sqliteCommand = conn.CreateCommand();
-        sqliteCommand.CommandText = "DELETE FROM Contacts WHERE Id = @Id";
-        sqliteCommand.Parameters.AddWithValue("@Id", id);
-        sqliteCommand.ExecuteNonQuery();
-        conn.Close();
-        return id;
+        using (SqliteConnection sqliteCon = InitDatabase())
+        {
+            sqliteCon.Open();
+            using (var sqliteCommand = sqliteCon.CreateCommand())
+            {
+                sqliteCommand.CommandText = "SELECT COUNT(*) FROM Contacts";
+                int count = Convert.ToInt32(sqliteCommand.ExecuteScalar());
+                return count;
+            }
+        }
     }
 }
